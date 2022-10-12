@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import br.com.site.pagamentos.paymentservicepb.constant.DocumentType;
 import br.com.site.pagamentos.paymentservicepb.constant.SellerInformation;
 import br.com.site.pagamentos.paymentservicepb.dto.requestbody.CustomerRequestDto;
@@ -25,24 +28,32 @@ import br.com.site.pagamentos.paymentservicepb.util.MappersUtil;
 @Service
 public class OrderService {
 
-	public PaymentResponseDto sendOrderPaymentRequest(PaymentRequestDto paymentRequestBody, HttpHeaders paymentRequestHeader) {
+	public PaymentResponseDto sendOrderPaymentRequest(String paymentRequestBodyJSON, HttpHeaders paymentRequestHeader) {
         RestTemplate rest = new RestTemplate();
         String url = "https://pb-getway-payment.herokuapp.com/v1/payments/credit-card";
 
-        HttpEntity<PaymentRequestDto> httpEntity = new HttpEntity<PaymentRequestDto>(paymentRequestBody, paymentRequestHeader);
+        HttpEntity<String> httpEntity = new HttpEntity<String>(paymentRequestBodyJSON, paymentRequestHeader);
         ResponseEntity<PaymentResponseDto> response = rest.exchange(url, HttpMethod.POST, httpEntity,
                 PaymentResponseDto.class);
         return response.getBody();
     }
 	
-	public PaymentRequestDto createPaymentRequestBody(OrderForm form) {
+	public String createPaymentRequestBody(OrderForm form) {
 		SellerInformation sellerInformation = new SellerInformation();
         CustomerRequestDto costumerDto = new CustomerRequestDto(DocumentType.CPF, form.getCpf());        
         BigDecimal total = calculaTotalPedido(form);
 
         PaymentRequestDto paymentRequestBody = new PaymentRequestDto(sellerInformation.getSellerId(),
                 costumerDto, form.getPaymentType(), form.getCurrencyType(), total, MappersUtil.convertCardFormToCardDto(form.getCard()));
-        return paymentRequestBody;
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+        	String paymentRequestBodyToJSON = mapper.writeValueAsString(paymentRequestBody);
+        	return paymentRequestBodyToJSON;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "";
+        }
 	}
 
 	public BigDecimal calculaTotalPedido(OrderForm form) {

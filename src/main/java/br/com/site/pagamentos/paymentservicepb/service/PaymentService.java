@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import br.com.site.pagamentos.paymentservicepb.dto.PaymentDto;
-import br.com.site.pagamentos.paymentservicepb.dto.requestbody.PaymentRequestDto;
 import br.com.site.pagamentos.paymentservicepb.dto.response.PaymentResponseDto;
 import br.com.site.pagamentos.paymentservicepb.dto.response.TokenResponseDto;
 import br.com.site.pagamentos.paymentservicepb.form.OrderForm;
@@ -37,9 +36,9 @@ public class PaymentService {
 		TokenResponseDto token = new TokenResponseDto();
 	
 		token = authenticationService.authenticate(token, time);
-		PaymentRequestDto paymentRequestBody = orderService.createPaymentRequestBody(form);
+		String paymentRequestBodyJSON = orderService.createPaymentRequestBody(form);
 		HttpHeaders paymentRequestHeader = orderService.createPaymentRequestHeader(token);
-		PaymentResponseDto paymentResponseDto = orderService.sendOrderPaymentRequest(paymentRequestBody, paymentRequestHeader);
+		PaymentResponseDto paymentResponseDto = orderService.sendOrderPaymentRequest(paymentRequestBodyJSON, paymentRequestHeader);
 		PaymentEntity payment = MappersUtil.convertPaymentResponseDtoToPayment(paymentResponseDto);
 		paymentRepository.save(payment);		
 		return payment;

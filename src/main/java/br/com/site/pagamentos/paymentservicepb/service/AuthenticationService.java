@@ -19,11 +19,8 @@ public class AuthenticationService {
 		if(token.getAccessToken() == null || time.compareTo(LocalDateTime.now()) < 0) {   
 	        TokenResponseDto newToken = getToken();
 	        newToken.setTokenExpirationTime(LocalDateTime.now().plusMinutes(3));
-	        System.out.println(token.getAccessToken());
-	        System.out.println(newToken.getAccessToken());
 	        return newToken;
 		}
-		System.out.println(token.getAccessToken());
 		return token;
     }
 	
